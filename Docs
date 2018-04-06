@@ -1,0 +1,51 @@
+后台设置
+
+<权限管理>
+	[修改] dashboard 改为 home, Dashboard 改为 Home
+	[添加] 标识: dashboard, 名称: Dashboard, HTTP路由: GET, HTTP路由: /dashboard
+
+<角色管理>
+	[添加] 标识: store_admin, 名称:店铺管理员, 权限: Login\Dashboard
+
+<用户管理>
+	[添加] 角色:店铺管理员, 权限: Login\Dashboard
+
+# 店铺数据库
+ALTER TABLE `bbp` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `cbp` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `member_store` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `member_cat` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `member_brand` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `mba` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `mba_month` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+
+# base 数据库
+ALTER TABLE `catindex` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `brandindex` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `cbp` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `mba_xingtu_index` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `mba_xingtu` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `merchandising_store` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `merchandising_cat` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+ALTER TABLE `merchandising_brand` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
+
+
+
+
+
+
+
+
+Todo:
+生意规划
+	品牌报告
+组货调改
+	组货预警(doing)
+	品类动能
+	品牌土壤
+活动营销
+	大促升维
+	精准营销(not ready)
+生命周期
+	价值分布(not ready)
+	品牌周期(not ready)
