@@ -38,24 +38,6 @@ class PlanningController extends Controller
 
 				
 			$content->row(function (Row $row) use($category) {
-				
-				// 门店品类规划 & 市场品类规划
-				$selectHtml0 = '
-					<select id="planningType" class="form-control" name="type">
-						<option value="cat-planning" selected>门店品类规划</option>
-						<option value="xtcat-planning">市场品类参考</option>
-					</select>';
-				$selectHtml0 .= '
-					<script>
-						$("#planningType").change(function(){
-							window.location.href="/admin/store/" + $(this).val();
-						})
-					</script>
-				';
-				$row->column(4, function (Column $column) use ($selectHtml0) {
-					$column->append($selectHtml0);
-				});
-
 				// 品类
 				$cbpCategories = Cbp::select('category')
 										->distinct()
@@ -87,7 +69,7 @@ class PlanningController extends Controller
 					</script>
 				';
 				
-				$row->column(8, function (Column $column) use ($selectHtml) {
+				$row->column(12, function (Column $column) use ($selectHtml) {
 					$column->append($selectHtml);
 				});
 			});
@@ -108,9 +90,9 @@ class PlanningController extends Controller
 					
 					// 今年数据
 					$data2 = Cbp::getPlanningData($category, $updateTimeYear, $updateTimeMonth, $data0['originCbps']);
-					$data3 = Cbp::getPlanningData($category, $updateTimeYear, 12);
-					
-					$row->column(6, function (Column $column) use ($data0, $data1, $updateTimeYear, $updateTimeMonth) {
+					$data3 = Cbp::getPlanningData($category, $updateTimeYear, 12, $data1['originCbps']);
+
+					$row->column(5, function (Column $column) use ($data0, $data1, $updateTimeYear, $updateTimeMonth) {
 						// 去年同月
 						
 						$header0 = ['类型','会员人数','平均购买<br />品牌数','平均品牌<br/>花费','销售'];
@@ -130,17 +112,24 @@ class PlanningController extends Controller
 					});
 
 					// 今年数据
-					$row->column(6, function (Column $column) use ($data1, $data2, $data3, $updateTimeYear, $updateTimeMonth) {
+					$row->column(7, function (Column $column) use ($data1, $data2, $data3, $updateTimeYear, $updateTimeMonth) {
+
 						// 今年同月
-						
 						$header2 = ['类型','会员人数','平均购买<br />品牌数','平均品牌<br/>花费','销售'];
 						$table2 = new Table($header2, $data2['cbps']);
 						$box2 = new Box( ($updateTimeYear).'年'.($updateTimeMonth).'月累计（会员占比：<span class="text-aqua">'.$data2['pcnt'].'%</span>）', $table2, 'line-chart');
 
-						$column->append($box2->style('danger'));
+						$column->append($box2->style('info'));
 
 						// 今年12月
+						$header3 = ['类型','会员人数','平均购买<br />品牌数','平均品牌<br/>花费','销售'];
+						$table3 = new Table($header3, $data3['cbps']);
+						$box3 = new Box( ($updateTimeYear).'年12月累计（会员占比：<span class="text-aqua">'.$data3['pcnt'].'%</span>）', $table3, 'line-chart');
+
+						$column->append($box3->style('info'));
 						
+					});
+					$row->column(12, function (Column $column) use ($data1, $data2, $data3, $updateTimeYear, $updateTimeMonth) {
 						$storeRate = CbpEvol::getStoreRate();
 						foreach ($data3['cbps'] as $key => &$data) {
 
@@ -155,57 +144,56 @@ class PlanningController extends Controller
 							$bsrate = round((round($data['avgbrandsales'])-$cd_avgbs)/$cd_avgbs*100);
 							$srate = round((round($data['sales'])-$cd_sales)/$cd_sales*100);
 
-							$data['ytdtotalcustomernum'] = number_format(round($data['ytdtotalcustomernum']));
+							$data['ytdtotalcustomernum'] = round($data['ytdtotalcustomernum']);
 							$data['crate'] = $crate;
 							$data['avgcustomerbrand'] = round($data['avgcustomerbrand'], 2);
 							$data['brate'] = $brate;
-							$data['avgbrandsales'] = number_format(round($data['avgbrandsales']));
+							$data['avgbrandsales'] = round($data['avgbrandsales']);
 							$data['bsrate'] = $bsrate;
-							$data['sales'] = number_format(round($data['sales']*100));
+							$data['sales'] = round($data['sales']);
 							$data['srate'] = $srate;
 						}
-					
 						$table3 = '
 						<table id="warning-cat" class="table table-bordered table-hover">
 			                <thead>
 			                <tr>
 			                  <th>类型</th>
 			                  <th>会员人数</th>
-			                  <th>平均购买<br />品牌数</th>
-			                  <th>平均品牌<br />花费</th>
+			                  <th>平均购买品牌数</th>
+			                  <th>平均品牌花费</th>
 			                  <th>销售</th>
 			                </tr>
 			                </thead>
 			                <tbody>
 			                  <tr>
 			                    <td>门店招新</td>
-			                    <td><input type="text" id="newc" numOnly="true" value="' . $data3['cbps'][0]['ytdtotalcustomernum'] . '" size="3" /><span id="badge1" class="badge '.cellColor($crate, $storeRate).'">'.(($crate>0)?'+':'').$crate.'%</span></td>
-			                    <td><input type="text" id="newb" decimalOnly="true" value="' . $data3['cbps'][0]['avgcustomerbrand'] . '" size="3" /><span id="badge2" class="badge '.cellColor($crate, $storeRate).'">'.(($crate>0)?'+':'').$crate.'%</span></td>
-			                    <td><input type="text" id="newbs" numOnly="true" value="' . $data3['cbps'][0]['avgbrandsales'] . '" size="3" /><span id="badge3" class="badge '.cellColor($crate, $storeRate).'">'.(($crate>0)?'+':'').$crate.'%</span></td>
+			                    <td><input type="text" id="newc" numOnly="true" value="' . $data3['cbps'][0]['ytdtotalcustomernum'] . '" size="4" /><span id="badge1" class="badge '.cellColor($crate, $storeRate).'">'.(($crate>0)?'+':'').$crate.'%</span></td>
+			                    <td><input type="text" id="newb" decimalOnly="true" value="' . $data3['cbps'][0]['avgcustomerbrand'] . '" size="4" /><span id="badge2" class="badge '.cellColor($crate, $storeRate).'">'.(($crate>0)?'+':'').$crate.'%</span></td>
+			                    <td><input type="text" id="newbs" numOnly="true" value="' . $data3['cbps'][0]['avgbrandsales'] . '" size="4" /><span id="badge3" class="badge '.cellColor($crate, $storeRate).'">'.(($crate>0)?'+':'').$crate.'%</span></td>
 			                    <td><div id="newsales">' . $data3['cbps'][0]['sales'] . '</div><span id="badge4" class="badge '.cellColor($crate, $storeRate).'">'.(($crate>0)?'+':'').$crate.'%</span></tr>
 			                  </tr>
 			                  <tr>
 			                    <td>品类招新</td>
-			                    <td><input type="text" id="crossc" numOnly="true" value="' . $data3['cbps'][1]['ytdtotalcustomernum'] . '" size="3" /><span id="badge9" class="badge '.cellColor($brate, $storeRate).'">'.(($brate>0)?'+':'').$brate.'%</span></td>
-			                    <td><input type="text" id="crossb" decimalOnly="true" value="' . $data3['cbps'][1]['avgcustomerbrand'] . '" size="3" /><span id="badge10" class="badge '.cellColor($brate, $storeRate).'">'.(($brate>0)?'+':'').$brate.'%</span></td>
-			                    <td><input type="text" id="crossbs" numOnly="true" value="' . $data3['cbps'][1]['avgbrandsales'] . '" size="3" /><span id="badge11" class="badge '.cellColor($brate, $storeRate).'">'.(($brate>0)?'+':'').$brate.'%</span></td>
+			                    <td><input type="text" id="crossc" numOnly="true" value="' . $data3['cbps'][1]['ytdtotalcustomernum'] . '" size="4" /><span id="badge9" class="badge '.cellColor($brate, $storeRate).'">'.(($brate>0)?'+':'').$brate.'%</span></td>
+			                    <td><input type="text" id="crossb" decimalOnly="true" value="' . $data3['cbps'][1]['avgcustomerbrand'] . '" size="4" /><span id="badge10" class="badge '.cellColor($brate, $storeRate).'">'.(($brate>0)?'+':'').$brate.'%</span></td>
+			                    <td><input type="text" id="crossbs" numOnly="true" value="' . $data3['cbps'][1]['avgbrandsales'] . '" size="4" /><span id="badge11" class="badge '.cellColor($brate, $storeRate).'">'.(($brate>0)?'+':'').$brate.'%</span></td>
 			                    <td><div id="crosssales">' . $data3['cbps'][1]['sales'] . '</div><span id="badge12" class="badge '.cellColor($brate, $storeRate).'">'.(($brate>0)?'+':'').$brate.'%</span></tr>
 			                  </tr>
 			                  <tr>
 			                    <td>品类复购</td>
-			                    <td><input type="text" id="repeatc" numOnly="true" value="' . $data3['cbps'][2]['ytdtotalcustomernum'] . '" size="3" /><span id="badge5" class="badge '.cellColor($bsrate, $storeRate).'">'.(($bsrate>0)?'+':'').$bsrate.'%</span></td>
-			                    <td><input type="text" id="repeatb" decimalOnly="true" value="' . $data3['cbps'][2]['avgcustomerbrand'] . '" size="3" /><span id="badge6" class="badge '.cellColor($bsrate, $storeRate).'">'.(($bsrate>0)?'+':'').$bsrate.'%</span></td>
-			                    <td><input type="text" id="repeatbs" numOnly="true" value="' . $data3['cbps'][2]['avgbrandsales'] . '" size="3" /><span id="badge7" class="badge '.cellColor($bsrate, $storeRate).'">'.(($bsrate>0)?'+':'').$bsrate.'%</span></td>
+			                    <td><input type="text" id="repeatc" numOnly="true" value="' . $data3['cbps'][2]['ytdtotalcustomernum'] . '" size="4" /><span id="badge5" class="badge '.cellColor($bsrate, $storeRate).'">'.(($bsrate>0)?'+':'').$bsrate.'%</span></td>
+			                    <td><input type="text" id="repeatb" decimalOnly="true" value="' . $data3['cbps'][2]['avgcustomerbrand'] . '" size="4" /><span id="badge6" class="badge '.cellColor($bsrate, $storeRate).'">'.(($bsrate>0)?'+':'').$bsrate.'%</span></td>
+			                    <td><input type="text" id="repeatbs" numOnly="true" value="' . $data3['cbps'][2]['avgbrandsales'] . '" size="4" /><span id="badge7" class="badge '.cellColor($bsrate, $storeRate).'">'.(($bsrate>0)?'+':'').$bsrate.'%</span></td>
 			                    <td><div id="repeatsales">' . $data3['cbps'][2]['sales'] . '</div><span id="badge8" class="badge '.cellColor($bsrate, $storeRate).'">'.(($bsrate>0)?'+':'').$bsrate.'%</span></tr>
 			                  </tr>
 			                </tbody>
 			                <tfoot>
 			                  <tr>
 			                    <th>总计</th>
-			                    <th><div id="totalc">' . $data3['cbps'][3]['ytdtotalcustomernum'] . '</div><span id="badge13" class="badge '.cellColor($srate, $storeRate).'">'.(($srate>0)?'+':'').$srate.'%</span></th>
-			                    <th><div id="totalb">' . $data3['cbps'][3]['avgcustomerbrand'] . '</div><span id="badge14" class="badge '.cellColor($srate, $storeRate).'">'.(($srate>0)?'+':'').$srate.'%</span></th>
-			                    <th><div id="totalbs">' . $data3['cbps'][3]['avgbrandsales'] . '</div><span id="badge15" class="badge '.cellColor($srate, $storeRate).'">'.(($srate>0)?'+':'').$srate.'%</span></th>
-			                    <th><div id="totalsales">' . $data3['cbps'][3]['sales'] . '</div><span id="badge16" class="badge '.cellColor($srate, $storeRate).'">'.(($srate>0)?'+':'').$srate.'%</span></tr>
+			                    <th><div id="totalc">' . $data3['cbps'][3]['ytdtotalcustomernum'] . '</div><span id="badge13" class="badge '.cellColor($srate, $storeRate).'"></span></th>
+			                    <th><div id="totalb">' . $data3['cbps'][3]['avgcustomerbrand'] . '</div><span id="badge14" class="badge '.cellColor($srate, $storeRate).'"></span></th>
+			                    <th><div id="totalbs">' . $data3['cbps'][3]['avgbrandsales'] . '</div><span id="badge15" class="badge '.cellColor($srate, $storeRate).'"></span></th>
+			                    <th><div id="totalsales">' . $data3['cbps'][3]['sales'] . '</div><span id="badge16" class="badge '.cellColor($srate, $storeRate).'"></span></tr>
 			                  </tr>
 			                </tfoot>
 			              </table>
@@ -582,7 +570,7 @@ HTML;
 
 						$box3 = new Box( ($updateTimeYear).'年12月累计预测（会员占比预测：<span class="text-aqua">'.$data3['pcnt'].'%</span>）', $table3.$hiddenData.$script, 'line-chart');
 
-						$column->append($box3->style('danger'));
+						$column->append($box3->style('success'));
 					});
 				});
 			}

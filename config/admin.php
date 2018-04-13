@@ -37,7 +37,7 @@ return [
     /*
      * Laravel-admin html title.
      */
-    'title'  => '弦石科技新零售系统',
+    'title'  => '弦石科技品牌新零售系统',
 
     /*
      * Use `https`.

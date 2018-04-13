@@ -37,23 +37,23 @@ class Cbp extends StoreBaseModel
 			$datas['originCbps'][$key]['avgcustomerbrand'] = round($cbp['avgcustomerbrand'], 2);
 			$datas['cbps'][$key]['avgbrandsales'] = number_format(round($cbp['avgbrandsales']));
 			$datas['originCbps'][$key]['avgbrandsales'] = round($cbp['avgbrandsales']);
-			$datas['cbps'][$key]['sales'] = number_format(round($cbp['sales']*100));
-			$datas['originCbps'][$key]['sales'] = round($cbp['sales']*100);
+			$datas['cbps'][$key]['sales'] = number_format(round($cbp['sales']));
+			$datas['originCbps'][$key]['sales'] = round($cbp['sales']);
 		}
 		if (!empty($compareDatas)) {
 			$storeRate = CbpEvol::getStoreRate();
 			
 			foreach ($datas['cbps'] as $key => &$data) {
+				
+				$crate = round((round(revertToNumber($data['ytdtotalcustomernum']))-revertToNumber($compareDatas[$key]['ytdtotalcustomernum']))/revertToNumber($compareDatas[$key]['ytdtotalcustomernum'])*100);
+				$brate = round((round(revertToNumber($data['avgcustomerbrand']),2)-revertToNumber($compareDatas[$key]['avgcustomerbrand']))/revertToNumber($compareDatas[$key]['avgcustomerbrand'])*100);
+				$bsrate = round((round(revertToNumber($data['avgbrandsales']))-revertToNumber($compareDatas[$key]['avgbrandsales']))/revertToNumber($compareDatas[$key]['avgbrandsales'])*100);
+				$srate = round((round(revertToNumber($data['sales']))-revertToNumber($compareDatas[$key]['sales']))/revertToNumber($compareDatas[$key]['sales'])*100);
 
-				$crate = round((round($data['ytdtotalcustomernum'])-$compareDatas[$key]['ytdtotalcustomernum'])/$compareDatas[$key]['ytdtotalcustomernum']*100);
-				$brate = round((round($data['avgcustomerbrand'],2)-$compareDatas[$key]['avgcustomerbrand'])/$compareDatas[$key]['avgcustomerbrand']*100);
-				$bsrate = round((round($data['avgbrandsales'])-$compareDatas[$key]['avgbrandsales'])/$compareDatas[$key]['avgbrandsales']*100);
-				$srate = round((round($data['sales'])-$compareDatas[$key]['sales'])/$compareDatas[$key]['sales']*100);
-
-				$data['ytdtotalcustomernum'] = number_format(round($data['ytdtotalcustomernum'])).' <span class="'.cellColor($crate, $storeRate).'">'.(($crate>0)?'+':'').$crate.'%</span></td>';
+				$data['ytdtotalcustomernum'] = $data['ytdtotalcustomernum'].' <span class="'.cellColor($crate, $storeRate).'">'.(($crate>0)?'+':'').$crate.'%</span></td>';
 				$data['avgcustomerbrand'] = round($data['avgcustomerbrand'], 2).' <span class="'.cellColor($brate, $storeRate).'">'.(($brate>0)?'+':'').$brate.'%</span></td>';
-				$data['avgbrandsales'] = number_format(round($data['avgbrandsales'])).' <span class="'.cellColor($bsrate, $storeRate).'">'.(($bsrate>0)?'+':'').$bsrate.'%</span></td>';
-				$data['sales'] = number_format(round($data['sales']*100)).' <span class="'.cellColor($srate, $storeRate).'">'.(($srate>0)?'+':'').$srate.'%</span></td>';
+				$data['avgbrandsales'] = $data['avgbrandsales'].' <span class="'.cellColor($bsrate, $storeRate).'">'.(($bsrate>0)?'+':'').$bsrate.'%</span></td>';
+				$data['sales'] = $data['sales'].' <span class="'.cellColor($srate, $storeRate).'">'.(($srate>0)?'+':'').$srate.'%</span></td>';
 			}
 		}
 

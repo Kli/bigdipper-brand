@@ -50,7 +50,7 @@ class CatWarningController extends StoreBaseController
 	}
 
 
-	public function warningCat(Request $request, $category)
+	public function warningCat($category)
 	{
 		if (Admin::user()->isAdministrator() && Admin::user()->database=='') {
 			return Admin::content(function (Content $content) {
@@ -78,7 +78,6 @@ class CatWarningController extends StoreBaseController
 			$cbps = DB::connection('store_db')->table('cbp')
 						->where('category', '=', $category)
 						->where('ytdmonth', '=', 12)
-						->where('status', '=', 'total')
 						->get();
 
 			foreach ($cbps as $cbp) {
@@ -113,29 +112,6 @@ class CatWarningController extends StoreBaseController
 									<a class="btn btn-block btn-sm btn-primary" href="/admin/store/member-cat-warning/' . $category . '"> <i class="icon fa fa-users"></i> 品类交易详情</a>
 									</div>
 								</div>';
-
-						$title0 = '<h5 class="box-title"> 会员占比</h5>';
-						$bar0 = new ChartBar(
-			                        ['会员占比'],
-			                        [
-			                            [ 
-			                            	'label' => $updateTimeYear-1,
-			                            	'data' => [ $barDatas['customerno'][$updateTimeYear-1]['new'] ],
-			                            	'backgroundColor' => '#00c0ef',
-			                            	'borderColor' => '0073b7',
-			                            	'borderWidth' => 1
-
-			                            ],
-			                            [ 
-			                            	'label' => $updateTimeYear,
-			                            	'data' => [ $barDatas['customerno'][$updateTimeYear]['new'] ],
-			                            	'backgroundColor' => '#3c8dbc',
-			                            	'borderColor' => '0073b7',
-			                            	'borderWidth' => 1
-			                            ],
-			                        ]
-			                    );
-						$bar0->options(['barValueSpacing' => 60, 'barDatasetSpacing' => 30]);
 
 						$title1 = '<h5 class="box-title"> 会员人数</h5>';
 						$bar1 = new ChartBar(
@@ -179,27 +155,6 @@ class CatWarningController extends StoreBaseController
 			                        ]
 			                    );
 
-						$title3 = '<h5 class="box-title"> 平均跨品牌数</h5>';
-						$bar3 = new ChartBar(
-			                        ['门店招新', '品类招新', '品类复购'],
-			                        [
-			                            [
-			                            	'label' => $updateTimeYear-1,
-			                            	'data' => [ $barDatas['avgcustomerbrand'][$updateTimeYear-1]['new'],$barDatas['avgcustomerbrand'][$updateTimeYear-1]['cross'],$barDatas['avgcustomerbrand'][$updateTimeYear-1]['repeat'] ],
-			                            	'backgroundColor' => '#00c0ef',
-			                            	'borderColor' => '0073b7',
-			                            	'borderWidth' => 1
-			                            ],
-			                            [
-			                            	'label' => $updateTimeYear,
-			                            	'data' => [ $barDatas['avgcustomerbrand'][$updateTimeYear]['new'],$barDatas['avgcustomerbrand'][$updateTimeYear]['cross'],$barDatas['avgcustomerbrand'][$updateTimeYear]['repeat'] ],
-			                            	'backgroundColor' => '#3c8dbc',
-			                            	'borderColor' => '0073b7',
-			                            	'borderWidth' => 1
-			                            ],
-			                        ]
-			                    );
-
 						$titleHB = '<h5 class="box-title"> 会员销售组成</h5>';
 						$horizonBar = new ChartBar(
 									[$updateTimeYear-1, $updateTimeYear],
@@ -208,21 +163,18 @@ class CatWarningController extends StoreBaseController
 			                            	'label' => '门店招新',
 			                            	'data' => [round($barDatas['sales_part'][$updateTimeYear-1]['new']/$barDatas['sales_part'][$updateTimeYear-1]['total']*100,1), round($barDatas['sales_part'][$updateTimeYear]['new']/$barDatas['sales_part'][$updateTimeYear]['total']*100,1)],
 			                            	'backgroundColor' => '#dd4b39',
-			                            	'borderColor' => '0073b7',
 			                            	'borderWidth' => 1
 			                            ],
 			                            [
 			                            	'label' => '品类招新',
 			                            	'data' => [round($barDatas['sales_part'][$updateTimeYear-1]['cross']/$barDatas['sales_part'][$updateTimeYear-1]['total']*100,1), round($barDatas['sales_part'][$updateTimeYear]['cross']/$barDatas['sales_part'][$updateTimeYear]['total']*100,1)],
 			                            	'backgroundColor' => '#f39c12',
-			                            	'borderColor' => '0073b7',
 			                            	'borderWidth' => 1
 			                            ],
 			                            [
 			                            	'label' => '品类复购',
 			                            	'data' => [round($barDatas['sales_part'][$updateTimeYear-1]['repeat']/$barDatas['sales_part'][$updateTimeYear-1]['total']*100,1), round($barDatas['sales_part'][$updateTimeYear]['repeat']/$barDatas['sales_part'][$updateTimeYear]['total']*100,1)],
 			                            	'backgroundColor' => '#00c0ef',
-			                            	'borderColor' => '0073b7',
 			                            	'borderWidth' => 1
 			                            ],
 			                        ]
@@ -245,7 +197,7 @@ class CatWarningController extends StoreBaseController
 												]
 											]);
 						
-						$bars = $buttons.$title0.$bar0.$titleHB.$horizonBar.$title1.$bar1.$title2.$bar2.$title3.$bar3;
+						$bars = $buttons.$titleHB.$horizonBar.$title1.$bar1.$title2.$bar2;
 
 						$box = (new Box($category, $bars, 'info', ''))->style('info');
 
@@ -260,7 +212,13 @@ class CatWarningController extends StoreBaseController
 	protected function gridCbpEvol()
 	{
 		return Admin::grid(CbpEvol::class, function (Grid $grid) {
+
+			$updateTime = getLastUpdateTime(Admin::user()->database);
 			
+			$grid->model()->where('type', '=', 'total');
+
+			$grid->model()->orderBy('rnk', 'asc');
+
 			$storeRate = CbpEvol::getStoreRate();
 
             $grid->rnk('排名')->sortable();
@@ -276,9 +234,6 @@ class CatWarningController extends StoreBaseController
             })->sortable();
             $grid->column('this_repeat_sales', '品类复购')->display(function() use($storeRate) {
             	return number_format(round($this->this_repeat_sales/10000)) . " <span class='label " . cellColor($this->evol_repeat_sales*100, $storeRate)."'>".round($this->evol_repeat_sales*100)."%</span>";
-            })->sortable();
-            $grid->column('this_pcnt', '会员占比')->display(function() use($storeRate) {
-            	return number_format(round($this->this_pcnt*100)) . "% <span class='label " . cellCustomerColor($this->evol_pcnt*100, $storeRate)."'>".round($this->evol_pcnt*100)."%</span>";
             })->sortable();
             $grid->column('措施')->display(function() {
             	return createCatAction($this);
@@ -307,9 +262,10 @@ class CatWarningController extends StoreBaseController
 	protected function gridCbp()
 	{
 		return Admin::grid(Cbp::class, function (Grid $grid) {
-			$updateTime = 品类(万)(Admin::user()->database);
+			$updateTime = getLastUpdateTime(Admin::user()->database);
 			
 			$grid->model()->where('status', '=', 'total')
+						  ->where('type', '=', 'total')
 						  ->where('year', '=', date('Y', strtotime($updateTime)))
 						  ->where('ytdmonth', '=', 12);
 
@@ -332,7 +288,12 @@ class CatWarningController extends StoreBaseController
             	} else if ($this->lifestatus == '已关'){
             		return '<span class="badge bg-red">' . $this->lifestatus . '</span>';
             	} else {
-            		$pastYearData = Cbp::where('category', '=', $this->category)->where('year', '=', intval($this->year)-1)->where('status', '=', 'total')->where('ytdmonth', '=', 12)->first();
+            		$pastYearData = Cbp::where('category', '=', $this->category)
+            							->where('year', '=', intval($this->year)-1)
+            							->where('status', '=', 'total')
+            							->where('type', '=', 'total')
+            							->where('ytdmonth', '=', 12)->first();
+            		
             		// dd($pastYearData);
             		$rate = round($this->sales/$pastYearData->sales*100)-100;
                     $positive=($rate>0)?"+":"";

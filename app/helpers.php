@@ -1,6 +1,11 @@
 <?php
 use DB;
 
+function revertToNumber($string)
+{
+	return str_replace(',', '', $string);
+}
+
 function getLastUpdateTime($database)
 {
 	$updateTime = DB::connection('store_db')->table('storeinfo')
