@@ -75,7 +75,7 @@ class DashboardController extends StoreBaseController
             <p><br /></p>
         </div>
         <div class="icon">
-            <i class="fa fa-shopping-cart"></i>
+            <i class="fa fa-shopping-bag"></i>
         </div>
     </div>
     <div class="box-footer no-padding">
@@ -94,11 +94,11 @@ class DashboardController extends StoreBaseController
 <div class="box box-widget widget-user-1">
     <div class="small-box bg-orange" style="margin-bottom:0; padding-bottom:5px;">
         <div class="inner">
-            <h3>品类预警</h3>
+            <h3>商品预警</h3>
             <p><br /></p>
         </div>
         <div class="icon">
-            <i class="fa fa-shopping-basket"></i>
+            <i class="fa fa-tags"></i>
         </div>
     </div>
     <div class="box-footer no-padding">
@@ -117,11 +117,11 @@ class DashboardController extends StoreBaseController
 <div class="box box-widget widget-user-1">
     <div class="small-box bg-purple" style="margin-bottom:0; padding-bottom:5px;">
         <div class="inner">
-            <h3>品牌预警</h3>
+            <h3>人群预警</h3>
             <p><br /></p>
         </div>
         <div class="icon">
-            <i class="fa fa-tags"></i>
+            <i class="fa fa-users"></i>
         </div>
     </div>
     <div class="box-footer no-padding">
