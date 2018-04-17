@@ -24,6 +24,7 @@ class Cbp extends StoreBaseModel
 		$cbps = self::where('category', '=', $category)
 						->where('ytdmonth', '=', $month)
 						->where('year', '=', $year)
+						->where('type', '=', 'total')
 						->select('status', 'ytdtotalcustomernum', 'avgcustomerbrand', 'avgbrandsales', 'sales')
 						->orderBy(DB::raw("FIELD(`status`, 'new', 'cross', 'repeat', 'total')"))
 						->get()->toArray();
@@ -44,7 +45,7 @@ class Cbp extends StoreBaseModel
 			$storeRate = CbpEvol::getStoreRate();
 			
 			foreach ($datas['cbps'] as $key => &$data) {
-				
+
 				$crate = round((round(revertToNumber($data['ytdtotalcustomernum']))-revertToNumber($compareDatas[$key]['ytdtotalcustomernum']))/revertToNumber($compareDatas[$key]['ytdtotalcustomernum'])*100);
 				$brate = round((round(revertToNumber($data['avgcustomerbrand']),2)-revertToNumber($compareDatas[$key]['avgcustomerbrand']))/revertToNumber($compareDatas[$key]['avgcustomerbrand'])*100);
 				$bsrate = round((round(revertToNumber($data['avgbrandsales']))-revertToNumber($compareDatas[$key]['avgbrandsales']))/revertToNumber($compareDatas[$key]['avgbrandsales'])*100);
