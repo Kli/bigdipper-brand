@@ -71,3 +71,11 @@ Route::group([
 
 
 });
+
+// API
+Route::group([
+    'prefix'        => 'api',
+    'namespace'     => 'App\\Admin\\Apis',
+], function (Router $router) {
+    $router->post('/cbpcustomized', 'CbpCustomizedController@post');
+});

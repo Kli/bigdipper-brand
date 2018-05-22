@@ -279,3 +279,11 @@ function transToRate($value,$bool)
 	}
 	return $output;
 }
+
+function str_rand($length=8)
+{
+	$str="abcdefghijkmnpqrstuvwxyz0123456789ABCDEFGHIGKLMNPQRSTUVWXYZ";
+
+	str_shuffle($str);
+	return substr(str_shuffle($str), 18, $length);
+}

@@ -5,6 +5,7 @@ namespace App\Admin\Models;
 use App\Admin\Models\StoreBaseModel;
 
 use App\Admin\Models\CbpEvol;
+use App\Admin\Models\CbpCustomized;
 use DB;
 
 class Cbp extends StoreBaseModel
@@ -68,5 +69,16 @@ class Cbp extends StoreBaseModel
 
 
 		return $datas;
+	}
+
+	public static function getCustomizedData($category, $year, $month)
+	{
+		$cbpCustomizedData = CbpCustomized::where('category', '=', $category)->first();
+
+		if ($cbpCustomizedData) {
+			return $cbpCustomizedData;
+		} else {
+			return self::getPlanningData($category, $year, $month);
+		}
 	}
 }

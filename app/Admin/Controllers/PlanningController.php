@@ -38,39 +38,8 @@ class PlanningController extends Controller
 
 				
 			$content->row(function (Row $row) use($category) {
-				// 品类
-				$cbpCategories = Cbp::select('category')
-										->distinct()
-										->orderBy('category', 'asc')
-										->get();
-				
-				$selectHtml = '
-					<select id="catname" class="form-control select2" name="catname"><option value="">选择一个品类</option>';
-				if ($category != '') {
-					foreach ($cbpCategories as $cbpCategory) {
-						$selected = ($category==$cbpCategory->category)?' selected':'';
-						$selectHtml .= '<option value="' . $cbpCategory->category . '" ' . $selected . '>' . $cbpCategory->category . '</option>';
-					}
-				} else {
-					foreach ($cbpCategories as $cbpCategory) {
-						$selectHtml .= '<option value="' . $cbpCategory->category . '">' . $cbpCategory->category . '</option>';
-					}
-				}
-				$selectHtml .= '</select>';
-				$selectHtml .= '
-					<script>
-						$("#catname").change(function(){
-							console.log($(this).val());
-							window.location.href="/admin/store/cat-planning/" + $(this).val();
-						});
-						$(document).ready(function() {
-						    $(".select2").select2();
-						});
-					</script>
-				';
-				
-				$row->column(12, function (Column $column) use ($selectHtml) {
-					$column->append($selectHtml);
+				$row->column(12, function (Column $column) {
+					$column->append($this->gridCbp());
 				});
 			});
 
@@ -207,6 +176,13 @@ class PlanningController extends Controller
 								$id++;
 							}
 						}
+
+						$buttons = <<<HTML
+<div class="box-footer">
+	<a class="btn btn-info btn-sm" id="showbrands"><i class="fa fa-tags"></i> 计算关注品牌</a>
+	<a class="pull-right btn btn-primary" id="submit_cbp">确认并保存</a>
+</div>
+HTML;
 						$script =<<<HTML
 <script type="text/javascript">
 
@@ -561,14 +537,34 @@ $(document).ready(function(){
     updateCrossBs();
 
   });
+
   $("#showbrands").click(function(){
       $("#brands").show();
   });
 
+	$("#submit_cbp").click(function(){
+	  	$.ajax({
+	  		url: '/api/cbpcustomized',
+	  		type: 'POST',
+	  		dataType: 'json',
+	  		data: {
+	  			'category':'阿斯蒂芬',
+	  			'data':"{'aaa':'123','bbb':'234','total':'345'}",
+	  			'total':72564
+	  		},
+	  		success: function(data) {
+	  			console.log('success');
+	  			console.log(data);
+	  		},
+	  		error: function(e) {
+	  			console.log('error')
+	  			console.log(e)
+	  		}
+	  	});
+	});
 </script>
 HTML;
-
-						$box3 = new Box( ($updateTimeYear).'年12月累计预测（会员占比预测：<span class="text-aqua">'.$data3['pcnt'].'%</span>）', $table3.$hiddenData.$script, 'line-chart');
+						$box3 = new Box( ($updateTimeYear).'年12月累计预测（会员占比预测：<span class="text-aqua">'.$data3['pcnt'].'%</span>）', $table3.$hiddenData.$buttons.$script, 'line-chart');
 
 						$column->append($box3->style('success'));
 					});
@@ -1256,5 +1252,68 @@ HTML;
 		});
 	}
 
+	protected function gridCbp()
+	{
+		return Admin::grid(Cbp::class, function (Grid $grid) {
+			$updateTime = getLastUpdateTime(Admin::user()->database);
+			
+			$grid->model()->where('status', '=', 'total')
+						  ->where('type', '=', 'total')
+						  ->where('year', '=', date('Y', strtotime($updateTime)))
+						  ->where('ytdmonth', '=', 12);
 
+            $grid->rnk('排名')->sortable();
+            $grid->category('品类')->sortable();
+            
+            $grid->column('sales', '今年销售预测')->display(function() {
+            	if ($this->lifestatus == '新开' || $this->lifestatus == '已关') {
+            		return ' - ';
+            	} else {
+            		return number_format(round($this->sales));
+            	}
+            })->sortable();
+
+            $grid->column('lifestatus', '销售预警')->display(function() {
+            	if ($this->lifestatus == '新开') {
+            		return '<span class="badge bg-green">' . $this->lifestatus . '</span>';
+            	} else if ($this->lifestatus == '已关'){
+            		return '<span class="badge bg-red">' . $this->lifestatus . '</span>';
+            	} else {
+            		$pastYearData = Cbp::where('category', '=', $this->category)
+            							->where('year', '=', intval($this->year)-1)
+            							->where('status', '=', 'total')
+            							->where('type', '=', 'total')
+            							->where('ytdmonth', '=', 12)->first();
+            		
+            		// dd($pastYearData);
+            		$rate = round($this->sales/$pastYearData->sales*100)-100;
+                    $positive=($rate>0)?"+":"";
+
+            		return '<span class="' . cellColor($rate, CbpEvol::getStoreRate()) . '">' . $positive . $rate . '%</span>';
+            	}
+            });
+
+            $grid->actions(function ($actions) {
+                $actions->disableEdit();
+                $actions->disableDelete();
+                if ($actions->row->lifestatus == '新开' || $actions->row->lifestatus == '已关') {
+                	$actions->append('<a type="button" class="btn btn-block btn-primary disabled">品类详情</a>');
+                } else {
+                	$actions->append('<a class="btn btn-block btn-primary" href="/admin/store/warning-cat/' . $actions->row->category . '">品类详情</a>');
+                }
+
+            });
+
+            $grid->tools(function ($tools) {
+                $tools->batch(function ($batch) {
+                    $batch->disableDelete();
+                });
+            });
+
+            $grid->disableRowSelector();
+            $grid->disableCreation();
+            $grid->disableFilter();
+            $grid->disableExport();
+        });
+	}
 }
